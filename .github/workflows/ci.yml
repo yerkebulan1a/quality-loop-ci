@@ -1,0 +1,28 @@
+name: Continuous Integration (Quality Loop)
+
+# 1. Триггеры запуска пайплайна
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# 2. Описание задач (Jobs)
+jobs:
+  test:
+    name: Build Docker and Run Autotests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Шаг A: Клонирование репозитория на виртуальную машину GitHub
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # Шаг B: Настройка Docker Buildx для удобной сборки и кэширования
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Шаг C: Запуск сервисов через Docker Compose и прогон тестов
+      - name: Run Autotests in Docker Compose
+        run: |
+          docker compose up --build --exit-code-from autotests

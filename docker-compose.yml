@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # --- Сервис 1: Веб-приложение FastAPI ---
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quality_app
+    ports:
+      - "8000:8000"
+    # Healthcheck проверяет, поднялось ли приложение и готово ли принимать запросы
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+
+  # --- Сервис 2: Автотесты Pytest ---
+  autotests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    container_name: quality_tests
+    # Ждём, пока сервис 'web' станет полностью здоровым (healthy), и только потом запускаем тесты
+    depends_on:
+      web:
+        condition: service_healthy

@@ -1,0 +1,22 @@
+# Виртуальное окружение
+.venv/
+venv/
+ENV/
+
+# Кеш Python и байт-код
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Кеш Pytest и отчётов
+.pytest_cache/
+.coverage
+htmlcov/
+allure-results/
+allure-report/
+
+# Служебные файлы ОС и IDE
+.idea/
+.vscode/
+.DS_Store
+*.log

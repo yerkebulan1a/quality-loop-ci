@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+
+# Устанавливаем зависимости
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копируем и приложение, и тесты (тестам нужен доступ к типам/схемам при необходимости)
+COPY app ./app
+COPY tests ./tests
+
+# Команда по умолчанию при запуске тестового контейнера
+CMD ["pytest", "-v"]

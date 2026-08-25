@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 # --- Orders ---
@@ -10,9 +10,7 @@ class OrderCreateSchema(BaseModel):
 
 class OrderResponseSchema(OrderCreateSchema):
     status: str
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StatusUpdateSchema(BaseModel):
@@ -24,6 +22,4 @@ class ItemSchema(BaseModel):
     id: int
     name: str
     price: float
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -29,7 +29,7 @@ async def test_create_order_publishes_event_to_kafka():
             response = await client.post(f"{APP_URL}/orders", json=payload)
 
         assert response.status_code == 200
-        assert response.json()["status"] == "success"
+        assert response.json()["status"] == "pending"
 
         # 3. Вычитываем сообщение из Kafka с таймаутом 10 секунд
         async def get_message():

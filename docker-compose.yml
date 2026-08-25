@@ -1,4 +1,19 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: quality_postgres
+    environment:
+      POSTGRES_USER: qa_user
+      POSTGRES_PASSWORD: qa_password
+      POSTGRES_DB: qa_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qa_user -d qa_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
   web:
     build:
       context: .
@@ -8,8 +23,11 @@ services:
       - "8000:8000"
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DATABASE_URL=postgresql+asyncpg://qa_user:qa_password@postgres:5432/qa_db
     depends_on:
       kafka:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -25,7 +43,6 @@ services:
       - "9092:9092"
       - "9094:9094"
     environment:
-      # KRaft mode (без Zookeeper)
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:9094
@@ -44,6 +61,24 @@ services:
       retries: 5
       start_period: 10s
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quality_worker
+    command: python -m app.worker
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - APP_URL=http://web:8000
+      - DATABASE_URL=postgresql+asyncpg://qa_user:qa_password@postgres:5432/qa_db
+    depends_on:
+      web:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
   autotests:
     build:
       context: .
@@ -57,3 +92,5 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      worker:
+        condition: service_started
